@@ -4,16 +4,21 @@
       <tr>
         <th>Player</th>
         <th>#</th>
-        <th>1st</th>
-        <th>2nd</th>
-        <th>3rd</th>
+        <th></th>
+        <th></th>
+        <th></th>
         <th>Lives</th>
       </tr>
-      <tr v-for="player in players" :key="player.name">
+      <tr v-for="player in players" :key="player.name"
+          v-bind:class="{
+            'current-player': isCurrentPlayer(player),
+            'dead-player': isDeadPlayer(player)
+          }"
+      >
         <td>{{player.name}}</td>
         <td>{{player.num}}</td>
         <td v-for="(_throw, index) in player.throws" :key="index">
-          <input disabled v-model="_throw.value"/>
+          <input disabled v-model="_throw.value" v-if="!isDeadPlayer(player)"/>
         </td>
         <td> {{player.lives}}</td>
       </tr>
@@ -35,8 +40,8 @@
     data() {
       return {
         players: [
-          {name: 'Felipe', num: '10', throws: [{value: ''}, {value: ''}, {value: ''}], lives: 3},
-          {name: 'Sasha', num: '20', throws: [{value: ''}, {value: ''}, {value: ''}], lives: 3}
+          {name: 'Felipe', num: '10', throws: [{value: ''}, {value: ''}, {value: ''}], was_dead: false, lives: 3},
+          {name: 'Sasha', num: '20', throws: [{value: ''}, {value: ''}, {value: ''}], was_dead: false, lives: 3}
         ]
       }
     },
@@ -44,6 +49,12 @@
       isNextThrow: () => {
         const THROWS_NUM = 3;
         return currentThrow < THROWS_NUM;
+      },
+      isCurrentPlayer: (player) => {
+        return currentPlayer().num === player.num;
+      },
+      isDeadPlayer: (player) => {
+        return isPlayerDead(player);
       }
     },
     created() {
@@ -63,12 +74,15 @@
         }
 
         if (enterPressed(e.keyCode)) {
-          if(self.isNextThrow()) {
-            startNextThrow();
-          } else if(isNextPlayer()) {
-            startNewPlayer();
-          } else {
-            startNewRound();
+          finishCurrentThrow();
+          if (!isGameOver()) {
+            if (self.isNextThrow()) {
+              startNextThrow();
+            } else if (isNextPlayer()) {
+              startNewPlayer();
+            } else {
+              startNewRound();
+            }
           }
         }
       });
@@ -76,6 +90,11 @@
   }
 
   //TODO: move all function to methods
+  function isGameOver() {
+    // game is over if there only one players having lives
+    // all other players must have 0 lives and was_dead = true
+  }
+
   function startNewRound() {
     currentPlayerNum = 1;
     currentThrow = 1;
@@ -91,9 +110,34 @@
   //   return currentThrow < THROWS_NUM;
   // }
 
+  function finishCurrentThrow() {
+    let damagedPlayer = players.find(player => player.num === _getKilledPlayer());
+    if (!damagedPlayer) {
+      return;
+    }
+
+    //TODO: consider if player has chance to recover
+    if (!isPlayerDead(currentPlayer())) {
+      damagedPlayer.lives--;
+      if (damagedPlayer.lives === 0) {
+        alert(`${damagedPlayer.name} ----- RIP`)
+      }
+    }
+
+    function _getKilledPlayer() {
+      if (!isNaN(getThrowValue())) {
+        return getThrowValue();
+      }
+    }
+  }
+
   function startNewPlayer() {
     currentPlayerNum += 1;
     currentThrow = 1;
+  }
+
+  function isPlayerDead(player) {
+    return player.lives === 0;
   }
 
   function currentPlayer() {
@@ -146,7 +190,15 @@
     margin: 0 10px;
   }
 
-  a {
+  .current-throw {
     color: #42b983;
+  }
+
+  .current-player {
+    background-color: aquamarine;
+  }
+
+  .dead-player {
+    background-color: red;
   }
 </style>
