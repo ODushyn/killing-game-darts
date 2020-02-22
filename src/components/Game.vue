@@ -11,7 +11,7 @@
       </tr>
       <tr v-for="player in this.engine.players" :key="player.name"
           v-bind:class="{
-            'current-player': isCurrentPlayer(player)
+            'current-player': (winner() !== undefined) && (winner() !== null) && isCurrentPlayer(player)
           }"
       >
         <td>{{player.name}}</td>
@@ -19,32 +19,37 @@
         <td v-for="(_throw, index) in player.throws" :key="index">
           <input disabled v-model="_throw.value"
                  v-if="!isPlayerRIP(player)"
-                 v-bind:class="{'current-throw': isCurrentThrow(player, index)}"/>
+                 v-bind:style="{width: 40 + 'px', 'text-align': 'center'}"
+                 v-bind:class="{'current-throw': !winner() && isCurrentThrow(player, index)}"/>
         </td>
         <td>
-          <span v-if="!player.rip">{{player.lives}}</span>
+          <span v-if="!winner() && !player.rip">{{player.lives}}</span>
+          <img src="@/assets/winner-cup.jpg"
+               v-if="winner() && winner().num === player.num"
+               alt="RIP"
+               style="width:30px; height:auto;">
           <img src="@/assets/rip.svg"
                v-if="player.rip"
                alt="RIP"
                style="width:30px; height:auto;">
           <img src="@/assets/heart.png"
-               v-if="player.recoveries === 1"
+               v-if="!winner() && player.recoveries === 1"
                alt="heart"
                style="width:10px; height:auto;">
         </td>
       </tr>
     </table>
     <div v-if="winner()">
-      Congrats to the best killer: <b> {{winner().name}}</b>
+      <b> {{winner().name}}</b> is the best killer today!
     </div>
     <div v-if="winner() === undefined">
-      <b> Good game guys! </b>
+      <b> Good game dead guys! </b>
     </div>
   </div>
 </template>
 
 <script>
-  import { Engine } from '../engine';
+  import {Engine} from '../engine';
 
   export default {
     name: 'Game',
@@ -67,7 +72,7 @@
         return this.engine.isCurrentThrow(player, throwNum);
       },
       winner() {
-        return this.engine.winner;
+        return this.engine.winner
       }
     },
     created() {

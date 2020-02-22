@@ -23,8 +23,9 @@ export class Engine {
           this.startNewRound();
         }
       }
-    } else {
-      // TODO: remove listeners
+    }
+
+    if(this.isGameOver()) {
       // alert winners or losers
       this.finishGame();
     }
@@ -144,11 +145,8 @@ export class Engine {
 
   startNewRound() {
     // should be first player that is not RIP
-    this.currentPlayerNum = 1;
-    while(this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum))) {
-      this.currentPlayerNum++;
-    }
-    this.currentThrow = 1;
+    this.currentPlayerNum = 0;
+    this.startNewPlayer();
     this.resetThrows();
   }
 

@@ -94,6 +94,34 @@ describe('Game', () => {
       engine.processThrow();
       expect(engine.isNextPlayer()).to.equal(false);
     });
+
+    it('should finish the game if only on player alive with positive lives', function () {
+      let engine = new Engine(players);
+      engine.players[0].rip = true;
+      engine.players[1].lives = 0;
+      engine.currentThrow = 3;
+      engine.currentPlayerNum = 2;
+      engine.setThrowValue('1');
+      engine.processThrow();
+      expect(engine.isGameOver()).to.equal(true);
+      expect(engine.winner.name).to.equal('Sasha');
+    });
+
+    it('should finish the game if all players are rip', function () {
+      let engine = new Engine(players);
+      engine.players[0].rip = true;
+      engine.players[0].lives = 0;
+      engine.players[1].rip = true;
+      engine.players[1].lives = 0;
+      engine.players[2].lives = 0;
+      engine.currentThrow = 3;
+      engine.currentPlayerNum = 3;
+      engine.setThrowValue('1');
+      engine.processThrow();
+      expect(engine.isNextPlayer()).to.equal(false);
+      expect(engine.isGameOver()).to.equal(true);
+      expect(engine.winner).to.equal(undefined);
+    });
   });
 
   describe('system test', () => {
