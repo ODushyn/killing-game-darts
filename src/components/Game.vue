@@ -38,7 +38,7 @@
   import { Engine } from '../engine';
 
   export default {
-    name: 'HelloWorld',
+    name: 'Game',
     props: {
       players: Array
     },
@@ -73,24 +73,8 @@
         }
 
         if (enterPressed(e.keyCode)) {
-          engine.applyCurrentThrow();
-          if (!engine.isGameOver()) {
-            if (engine.isNextThrow()) {
-              engine.startNextThrow();
-            } else {
-              engine.finishCurrentPlayer();
-              if (engine.isNextPlayer()) {
-                engine.startNewPlayer();
-              } else {
-                engine.startNewRound();
-              }
-            }
-            self.$forceUpdate();
-          } else {
-            // TODO: remove listeners
-            // alert winners or losers
-            engine.finishGame();
-          }
+          engine.processThrow();
+          self.$forceUpdate();
         }
       });
     }

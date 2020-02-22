@@ -4,9 +4,30 @@ export class Engine {
   players = [];
   currentPlayerNum = 1;
   currentThrow = 1;
+  winner = null;
 
   constructor(players) {
     this.players = players;
+  }
+
+  processThrow() {
+    this.applyCurrentThrow();
+    if (!this.isGameOver()) {
+      if (this.isNextThrow()) {
+        this.startNextThrow();
+      } else {
+        this.finishCurrentPlayer();
+        if (this.isNextPlayer()) {
+          this.startNewPlayer();
+        } else {
+          this.startNewRound();
+        }
+      }
+    } else {
+      // TODO: remove listeners
+      // alert winners or losers
+      this.finishGame();
+    }
   }
 
   isNextThrow() {
@@ -60,7 +81,6 @@ export class Engine {
           if(newLives === 0) {
             if(player.recoveries === 0) {
               player.rip = true;
-              alert(`${player.name} ----- RIP2`);
             } else {
               player.recoveries--;
             }
@@ -111,14 +131,19 @@ export class Engine {
   }
 
   startNewPlayer() {
-    while(this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum++))) {
-      if(this.currentPlayerNum > this.players.length) this.currentPlayerNum = 1;
-    }
+    let index = 0;
     this.currentThrow = 1;
+    while(index++ < this.players.length) {
+      this.currentPlayerNum++;
+      this.currentPlayerNum = this.currentPlayerNum > this.players.length ? 1 : this.currentPlayerNum;
+      if(!this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum))){
+        return;
+      }
+    }
   }
 
   startNewRound() {
-    // should be first player is not out
+    // should be first player that is not RIP
     this.currentPlayerNum = 1;
     while(this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum))) {
       this.currentPlayerNum++;
@@ -130,9 +155,11 @@ export class Engine {
   finishGame() {
     let alive = this.getAlivePlayers();
     if(alive.length === 1) {
-      alert(`Congrats ${alive.name}!`);
+      this.winner = alive[0];
     } else if(alive.length === 0) {
-      alert(`It is so exiting you guys killed all each other!`);
+      // everybody killed each other
+      this.winner = undefined;
+      //alert(`It is so exiting you guys killed all each other!`);
     }
   }
 
@@ -140,8 +167,6 @@ export class Engine {
     return player.rip;
   }
 
-
-  // make private?
   resetThrows() {
     this.players.forEach((player) => player.throws = [{value: ''}, {value: ''}, {value: ''}]);
   }
