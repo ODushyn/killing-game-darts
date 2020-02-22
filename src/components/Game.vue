@@ -9,7 +9,7 @@
         <th></th>
         <th>Lives</th>
       </tr>
-      <tr v-for="player in players" :key="player.name"
+      <tr v-for="player in this.engine.players" :key="player.name"
           v-bind:class="{
             'current-player': isCurrentPlayer(player),
             'dead-player': isPlayerRIP(player)
@@ -24,7 +24,7 @@
         </td>
         <td>
           {{player.lives}}
-          <img src="@/assets//heart.png"
+          <img src="@/assets/heart.png"
                v-if="player.recoveries === 1"
                alt="heart"
                style="width:10px; height:auto;">
@@ -37,10 +37,6 @@
 <script>
   import { Engine } from '../engine';
 
-  let players = [];
-  let currentPlayerNum = 1;
-  let currentThrow = 1;
-
   export default {
     name: 'HelloWorld',
     props: {
@@ -52,191 +48,52 @@
       }
     },
     methods: {
-      isNextThrow: () => {
-        const THROWS_NUM = 3;
-        return currentThrow < THROWS_NUM;
+      isCurrentPlayer(player) {
+        return this.engine.isCurrentPlayer(player);
       },
-      isCurrentPlayer: (player) => {
-        return currentPlayer().num === player.num;
+      isPlayerRIP(player) {
+        return this.engine.isPlayerRIP(player);
       },
-      isPlayerRIP: (player) => {
-        return isPlayerRIP(player);
-      },
-      isCurrentThrow: (player, index) => {
-        return player.num === currentPlayer().num && currentThrow === index + 1;
+      isCurrentThrow(player, throwNum) {
+        return this.engine.isCurrentThrow(player, throwNum);
       }
     },
     created() {
-      players = this.engine.players;
       let self = this;
+      let engine = self.engine;
 
       window.addEventListener('keydown', function (e) {
         if (numberPressed(e.keyCode)) {
-          if (isNewThrowValueValid(getThrowValue() + e.key)) {
-            setThrowValue(getThrowValue() + e.key);
-          }
+          engine.setThrowValue(e.key);
         }
 
         if (backSpacePressed(e.keyCode)) {
           //TODO: go back in the history
-          setThrowValue('');
+          engine.clearThrowValue();
         }
 
         if (enterPressed(e.keyCode)) {
-          applyCurrentThrow();
-          if (!isGameOver()) {
-            if (self.isNextThrow()) {
-              startNextThrow();
+          engine.applyCurrentThrow();
+          if (!engine.isGameOver()) {
+            if (engine.isNextThrow()) {
+              engine.startNextThrow();
             } else {
-              finishCurrentPlayer();
-              if (isNextPlayer()) {
-                startNewPlayer();
+              engine.finishCurrentPlayer();
+              if (engine.isNextPlayer()) {
+                engine.startNewPlayer();
               } else {
-                startNewRound();
+                engine.startNewRound();
               }
             }
             self.$forceUpdate();
           } else {
             // TODO: remove listeners
             // alert winners or losers
-            finishGame();
+            engine.finishGame();
           }
         }
       });
     }
-  }
-
-  //TODO: move all function to methods?
-  function isGameOver() {
-    // game is over if there only one players having lives
-    // all other players must have 0 lives and was_dead = true
-    let alivePlayers = players.filter(player => !isPlayerRIP(player));
-    //TODO consider all are dead
-    return alivePlayers.length === 0 || alivePlayers.length === 1 && alivePlayers[0].lives > 0;
-  }
-
-  function finishGame() {
-    let alive = alivePlayers();
-    if(alive.length === 1) {
-      alert(`Congrats ${alive.name}!`);
-    } else if(alive.length === 0) {
-      alert(`It is so exiting you guys killed all each other!`);
-    }
-  }
-
-  function startNewRound() {
-    // should be first player is not out
-    currentPlayerNum = 1;
-    while(isPlayerRIP(getPlayerByOrder(currentPlayerNum))) {
-      currentPlayerNum++;
-    }
-    currentThrow = 1;
-    resetThrows();
-  }
-
-  function finishCurrentPlayer() {
-    if(!_isCurrentPlayerAlive()) {
-      currentPlayer().rip = true;
-    }
-
-    function _isCurrentPlayerAlive() {
-      return currentPlayer().lives > 0;
-    }
-  }
-
-  function startNextThrow() {
-    currentThrow++;
-  }
-
-  function alivePlayers() {
-    return players.filter(player => !isPlayerRIP(player));
-  }
-
-  function resetThrows() {
-    players.forEach((player) => player.throws = [{value: ''}, {value: ''}, {value: ''}]);
-  }
-
-  function applyCurrentThrow() {
-    let damagedPlayer = players.find(player => player.num === _getKilledPlayer());
-
-    if (damagedPlayer) {
-      if (currentPlayer().num !== damagedPlayer.num) {
-        _damagePlayer(damagedPlayer, 1);
-      } else {
-        _healPlayer(currentPlayer(), 1);
-      }
-    }
-
-    function _getKilledPlayer() {
-      if (!isNaN(getThrowValue())) {
-        return getThrowValue();
-      }
-    }
-
-    function _damagePlayer(player, damage){
-      if(!isPlayerRIP(player)) {
-        let newLives = player.lives - damage > 0 ? player.lives - damage : 0;
-        if(player.lives > 0) {
-          if(newLives === 0) {
-            if(player.recoveries === 0) {
-              player.rip = true;
-              alert(`${player.name} ----- RIP2`);
-            } else {
-              player.recoveries--;
-            }
-          }
-          player.lives = newLives;
-        }
-      }
-    }
-
-    function _healPlayer(player, points) {
-      if(!isPlayerRIP(player)) {
-        player.lives = player.lives + points > 3 ? 3 : player.lives + points;
-      }
-    }
-  }
-
-  function startNewPlayer() {
-    while(isPlayerRIP(getPlayerByOrder(currentPlayerNum++))) {
-      if(currentPlayerNum > players.length) currentPlayerNum = 1;
-    }
-    currentThrow = 1;
-  }
-
-  function isPlayerRIP(player) {
-    return player.rip;
-  }
-
-  function currentPlayer() {
-    return players[currentPlayerNum - 1];
-  }
-
-  function getPlayerByOrder(order) {
-    return players[order - 1];
-  }
-
-  function isNextPlayer() {
-    let currentNumber = currentPlayerNum;
-    while(++currentNumber <= players.length) {
-      if(!isPlayerRIP(getPlayerByOrder(currentNumber))){
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function setThrowValue(throwValue) {
-    currentPlayer().throws[currentThrow - 1].value = throwValue;
-  }
-
-  function getThrowValue() {
-    return currentPlayer().throws[currentThrow - 1].value;
-  }
-
-  function isNewThrowValueValid(newValue) {
-    const VALID_SCORES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '25'];
-    return VALID_SCORES.indexOf(newValue) !== -1;
   }
 
   function enterPressed(keyCode) {
