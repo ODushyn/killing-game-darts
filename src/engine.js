@@ -53,6 +53,8 @@ export class Engine {
         }
       } else if(value === '+' && that.isThrowValueValid(throwValue)) {
         throwValue = `D-${throwValue}`;
+      } else if(value === '+' && throwValue.startsWith('D-')) {
+        throwValue = `T-${throwValue.split('-')[1]}`;
       } else {
         if (that.isThrowValueValid(throwValue + value)) {
           throwValue += value
