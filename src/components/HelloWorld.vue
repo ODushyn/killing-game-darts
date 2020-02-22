@@ -48,8 +48,30 @@
     data() {
       return {
         players: [
-          {name: 'Felipe', num: '10', throws: [{value: ''}, {value: ''}, {value: ''}], recoveries: 1, lives: 3},
-          {name: 'Sasha', num: '20', throws: [{value: ''}, {value: ''}, {value: ''}], recoveries: 1, lives: 3}
+          {
+            name: 'Felipe',
+            num: '10',
+            throws: [{value: ''}, {value: ''}, {value: ''}],
+            recoveries: 1,
+            lives: 3,
+            rip: false
+          },
+          {
+            name: 'Oliver',
+            num: '15',
+            throws: [{value: ''}, {value: ''}, {value: ''}],
+            recoveries: 1,
+            lives: 3,
+            rip: false
+          },
+          {
+            name: 'Sasha',
+            num: '20',
+            throws: [{value: ''}, {value: ''}, {value: ''}],
+            recoveries: 1,
+            lives: 3,
+            rip: false
+          }
         ]
       }
     },
@@ -85,17 +107,23 @@
         }
 
         if (enterPressed(e.keyCode)) {
-          finishCurrentThrow();
+          applyCurrentThrow();
           if (!isGameOver()) {
             if (self.isNextThrow()) {
               startNextThrow();
-            } else if (isNextPlayer()) {
-              startNewPlayer();
             } else {
-              finishCurrentRound();
-              startNewRound();
+              finishCurrentPlayer();
+              if (isNextPlayer()) {
+                startNewPlayer();
+              } else {
+                startNewRound();
+              }
             }
             self.$forceUpdate();
+          } else {
+            // TODO: remove listeners
+            // alert winners or losers
+            finishGame();
           }
         }
       });
@@ -107,26 +135,36 @@
     // game is over if there only one players having lives
     // all other players must have 0 lives and was_dead = true
     let alivePlayers = players.filter(player => !isPlayerRIP(player));
-    if(alivePlayers.length === 1) {
-      alert(`${alivePlayers[0].name} ----- Congrats!`);
-      return true;
-    }
+    //TODO consider all are dead
+    return alivePlayers.length === 0 || alivePlayers.length === 1 && alivePlayers[0].lives > 0;
+  }
 
-    return false;
+  function finishGame() {
+    let alive = alivePlayers();
+    if(alive.length === 1) {
+      alert(`Congrats ${alive.name}!`);
+    } else if(alive.length === 0) {
+      alert(`It is so exiting you guys killed all each other!`);
+    }
   }
 
   function startNewRound() {
+    // should be first player is not out
     currentPlayerNum = 1;
+    while(isPlayerRIP(getPlayerByOrder(currentPlayerNum))) {
+      currentPlayerNum++;
+    }
     currentThrow = 1;
-    players.forEach((player) => player.throws = [{value: ''}, {value: ''}, {value: ''}]);
+    resetThrows();
   }
 
-  function finishCurrentRound() {
-    if(currentPlayer().lives === 0) {
-      currentPlayer().recoveries--;
+  function finishCurrentPlayer() {
+    if(!_isCurrentPlayerAlive()) {
+      currentPlayer().rip = true;
     }
-    if(isPlayerRIP(currentPlayer())){
-      alert(`${currentPlayer().name} ----- RIP`)
+
+    function _isCurrentPlayerAlive() {
+      return currentPlayer().lives > 0;
     }
   }
 
@@ -134,20 +172,23 @@
     currentThrow++;
   }
 
-  function finishCurrentThrow() {
+  function alivePlayers() {
+    return players.filter(player => !isPlayerRIP(player));
+  }
+
+  function resetThrows() {
+    players.forEach((player) => player.throws = [{value: ''}, {value: ''}, {value: ''}]);
+  }
+
+  function applyCurrentThrow() {
     let damagedPlayer = players.find(player => player.num === _getKilledPlayer());
 
-    if (damagedPlayer && !isPlayerRIP(damagedPlayer)) {
-      if(currentPlayer().num !== damagedPlayer.num) {
-        if(damagedPlayer.lives > 0) damagedPlayer.lives--;
-        if(damagedPlayer.lives === 0) damagedPlayer.recoveries--;
+    if (damagedPlayer) {
+      if (currentPlayer().num !== damagedPlayer.num) {
+        _damagePlayer(damagedPlayer, 1);
       } else {
-        if(currentPlayer().lives < 3) currentPlayer().lives++;
+        _healPlayer(currentPlayer(), 1);
       }
-    }
-
-    if (damagedPlayer && isPlayerRIP(damagedPlayer)) {
-      alert(`${damagedPlayer.name} ----- RIP`)
     }
 
     function _getKilledPlayer() {
@@ -155,23 +196,58 @@
         return getThrowValue();
       }
     }
+
+    function _damagePlayer(player, damage){
+      if(!isPlayerRIP(player)) {
+        let newLives = player.lives - damage > 0 ? player.lives - damage : 0;
+        if(player.lives > 0) {
+          if(newLives === 0) {
+            if(player.recoveries === 0) {
+              player.rip = true;
+              alert(`${player.name} ----- RIP2`);
+            } else {
+              player.recoveries--;
+            }
+          }
+          player.lives = newLives;
+        }
+      }
+    }
+
+    function _healPlayer(player, points) {
+      if(!isPlayerRIP(player)) {
+        player.lives = player.lives + points > 3 ? 3 : player.lives + points;
+      }
+    }
   }
 
   function startNewPlayer() {
-    currentPlayerNum += 1;
+    while(isPlayerRIP(getPlayerByOrder(currentPlayerNum++))) {
+      if(currentPlayerNum > players.length) currentPlayerNum = 1;
+    }
     currentThrow = 1;
   }
 
   function isPlayerRIP(player) {
-    return player.lives === 0 && player.recoveries === -1;
+    return player.rip;
   }
 
   function currentPlayer() {
     return players[currentPlayerNum - 1];
   }
 
+  function getPlayerByOrder(order) {
+    return players[order - 1];
+  }
+
   function isNextPlayer() {
-    return currentPlayerNum < players.length;
+    let currentNumber = currentPlayerNum;
+    while(++currentNumber <= players.length) {
+      if(!isPlayerRIP(getPlayerByOrder(currentNumber))){
+        return true;
+      }
+    }
+    return false;
   }
 
   function setThrowValue(throwValue) {
