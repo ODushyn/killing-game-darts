@@ -11,8 +11,7 @@
       </tr>
       <tr v-for="player in this.engine.players" :key="player.name"
           v-bind:class="{
-            'current-player': isCurrentPlayer(player),
-            'dead-player': isPlayerRIP(player)
+            'current-player': isCurrentPlayer(player)
           }"
       >
         <td>{{player.name}}</td>
@@ -23,7 +22,11 @@
                  v-bind:class="{'current-throw': isCurrentThrow(player, index)}"/>
         </td>
         <td>
-          {{player.lives}}
+          <span v-if="!player.rip">{{player.lives}}</span>
+          <img src="@/assets/rip.svg"
+               v-if="player.rip"
+               alt="RIP"
+               style="width:30px; height:auto;">
           <img src="@/assets/heart.png"
                v-if="player.recoveries === 1"
                alt="heart"
@@ -31,6 +34,12 @@
         </td>
       </tr>
     </table>
+    <div v-if="winner()">
+      Congrats to the best killer: <b> {{winner().name}}</b>
+    </div>
+    <div v-if="winner() === undefined">
+      <b> Good game guys! </b>
+    </div>
   </div>
 </template>
 
@@ -56,6 +65,9 @@
       },
       isCurrentThrow(player, throwNum) {
         return this.engine.isCurrentThrow(player, throwNum);
+      },
+      winner() {
+        return this.engine.winner;
       }
     },
     created() {
@@ -115,9 +127,5 @@
 
   .current-player {
     background-color: aquamarine;
-  }
-
-  .dead-player {
-    background-color: red;
   }
 </style>
