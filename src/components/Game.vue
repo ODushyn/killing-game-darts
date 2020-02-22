@@ -86,7 +86,7 @@
 
         if (backSpacePressed(e.keyCode)) {
           //TODO: go back in the history
-          engine.clearThrowValue();
+          engine.revertLastAction();
         }
 
         if (enterPressed(e.keyCode)) {

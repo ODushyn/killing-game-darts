@@ -5,12 +5,15 @@ export class Engine {
   currentPlayerNum = 1;
   currentThrow = 1;
   winner = null;
+  history = [];
 
   constructor(players) {
     this.players = players;
+    this.saveHistory();
   }
 
   processThrow() {
+    this.saveHistory();
     this.applyCurrentThrow();
     if (!this.isGameOver()) {
       if (this.isNextThrow()) {
@@ -25,7 +28,7 @@ export class Engine {
       }
     }
 
-    if(this.isGameOver()) {
+    if (this.isGameOver()) {
       // alert winners or losers
       this.finishGame();
     }
@@ -40,20 +43,21 @@ export class Engine {
   }
 
   setThrowValue(value) {
+    if(this.isGameOver()) return;
     let that = this;
     this.currentPlayer().throws[this.currentThrow - 1].value = _generateThrowValue(value);
 
     function _generateThrowValue(value) {
       let throwValue = that.getThrowValue();
-      if(throwValue === '' && value === 'Enter') {
+      if (throwValue === '' && value === 'Enter') {
         throwValue = 'Miss';
-      } else if(value === '.' && that.isThrowValueValid(throwValue)) {
-        if(throwValue !== '25') {
+      } else if (value === '.' && that.isThrowValueValid(throwValue)) {
+        if (throwValue !== '25') {
           throwValue = `T-${throwValue}`;
         }
-      } else if(value === '+' && that.isThrowValueValid(throwValue)) {
+      } else if (value === '+' && that.isThrowValueValid(throwValue)) {
         throwValue = `D-${throwValue}`;
-      } else if(value === '+' && throwValue.startsWith('D-')) {
+      } else if (value === '+' && throwValue.startsWith('D-')) {
         throwValue = `T-${throwValue.split('-')[1]}`;
       } else {
         if (that.isThrowValueValid(throwValue + value)) {
@@ -74,6 +78,29 @@ export class Engine {
 
   clearThrowValue() {
     this.currentPlayer().throws[this.currentThrow - 1].value = '';
+  }
+
+  revertLastAction() {
+    if(this.getThrowValue() !== '') {
+      this.currentPlayer().throws[this.currentThrow - 1].value = '';
+    } else {
+      let snapshot = this.history.length > 1 ? this.history.pop() : JSON.parse(JSON.stringify(this.history[0]));
+      this.players = snapshot.players;
+      this.currentPlayerNum = snapshot.currentPlayerNum;
+      this.currentThrow = snapshot.currentThrow;
+      this.winner = snapshot.winner;
+    }
+  }
+
+  saveHistory() {
+    this.history.push(JSON.parse(JSON.stringify(
+      Object.assign({}, {
+        players: this.players,
+        currentPlayerNum: this.currentPlayerNum,
+        currentThrow: this.currentThrow,
+        winner: this.winner
+      })
+    )));
   }
 
   applyCurrentThrow() {
@@ -107,12 +134,12 @@ export class Engine {
       return 1;
     }
 
-    function _damagePlayer(player, damage){
-      if(!that.isPlayerRIP(player)) {
+    function _damagePlayer(player, damage) {
+      if (!that.isPlayerRIP(player)) {
         let newLives = player.lives - damage > 0 ? player.lives - damage : 0;
-        if(player.lives > 0) {
-          if(newLives === 0) {
-            if(player.recoveries === 0) {
+        if (player.lives > 0) {
+          if (newLives === 0) {
+            if (player.recoveries === 0) {
               player.rip = true;
             } else {
               player.recoveries--;
@@ -124,7 +151,7 @@ export class Engine {
     }
 
     function _healPlayer(player, points) {
-      if(!that.isPlayerRIP(player)) {
+      if (!that.isPlayerRIP(player)) {
         player.lives = player.lives + points > 3 ? 3 : player.lives + points;
       }
     }
@@ -144,7 +171,7 @@ export class Engine {
 
   finishCurrentPlayer() {
     let that = this;
-    if(!_isCurrentPlayerAlive()) {
+    if (!_isCurrentPlayerAlive()) {
       this.currentPlayer().rip = true;
     }
 
@@ -155,8 +182,8 @@ export class Engine {
 
   isNextPlayer() {
     let currentNumber = this.currentPlayerNum;
-    while(++currentNumber <= this.players.length) {
-      if(!this.isPlayerRIP(this.getPlayerByOrder(currentNumber))){
+    while (++currentNumber <= this.players.length) {
+      if (!this.isPlayerRIP(this.getPlayerByOrder(currentNumber))) {
         return true;
       }
     }
@@ -166,10 +193,10 @@ export class Engine {
   startNewPlayer() {
     let index = 0;
     this.currentThrow = 1;
-    while(index++ < this.players.length) {
+    while (index++ < this.players.length) {
       this.currentPlayerNum++;
       this.currentPlayerNum = this.currentPlayerNum > this.players.length ? 1 : this.currentPlayerNum;
-      if(!this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum))){
+      if (!this.isPlayerRIP(this.getPlayerByOrder(this.currentPlayerNum))) {
         return;
       }
     }
@@ -184,9 +211,9 @@ export class Engine {
 
   finishGame() {
     let alive = this.getAlivePlayers();
-    if(alive.length === 1) {
+    if (alive.length === 1) {
       this.winner = alive[0];
-    } else if(alive.length === 0) {
+    } else if (alive.length === 0) {
       // everybody killed each other
       this.winner = undefined;
       //alert(`It is so exiting you guys killed all each other!`);
