@@ -35,44 +35,20 @@
 </template>
 
 <script>
-  //TODO: move to data
+  import { Engine } from '../engine';
+
+  let players = [];
   let currentPlayerNum = 1;
   let currentThrow = 1;
-  let players;
 
   export default {
     name: 'HelloWorld',
     props: {
-      msg: String
+      players: Array
     },
     data() {
       return {
-        players: [
-          {
-            name: 'Felipe',
-            num: '10',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          },
-          {
-            name: 'Oliver',
-            num: '15',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          },
-          {
-            name: 'Sasha',
-            num: '20',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          }
-        ]
+        engine: new Engine(this.players)
       }
     },
     methods: {
@@ -91,8 +67,8 @@
       }
     },
     created() {
+      players = this.engine.players;
       let self = this;
-      players = this.players;
 
       window.addEventListener('keydown', function (e) {
         if (numberPressed(e.keyCode)) {
