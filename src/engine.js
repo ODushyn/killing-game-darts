@@ -40,20 +40,25 @@ export class Engine {
   }
 
   setThrowValue(value) {
-    let throwValue = this.getThrowValue();
-    if(throwValue === '' && value === 'Enter') {
-      this.currentPlayer().throws[this.currentThrow - 1].value = 'Miss';
-    } else if(value === '.' && this.isThrowValueValid(throwValue)) {
-      throwValue = `T-${throwValue}`;
-      this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
-    } else if(value === '+' && this.isThrowValueValid(throwValue)) {
-      throwValue = `D-${throwValue}`;
-      this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
-    } else {
-      throwValue += value;
-      if (this.isThrowValueValid(throwValue)) {
-        this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
+    let that = this;
+    this.currentPlayer().throws[this.currentThrow - 1].value = _generateThrowValue(value);
+
+    function _generateThrowValue(value) {
+      let throwValue = that.getThrowValue();
+      if(throwValue === '' && value === 'Enter') {
+        throwValue = 'Miss';
+      } else if(value === '.' && that.isThrowValueValid(throwValue)) {
+        if(throwValue !== '25') {
+          throwValue = `T-${throwValue}`;
+        }
+      } else if(value === '+' && that.isThrowValueValid(throwValue)) {
+        throwValue = `D-${throwValue}`;
+      } else {
+        if (that.isThrowValueValid(throwValue + value)) {
+          throwValue += value
+        }
       }
+      return throwValue;
     }
   }
 
