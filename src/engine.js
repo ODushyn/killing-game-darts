@@ -40,8 +40,20 @@ export class Engine {
   }
 
   setThrowValue(value) {
-    if (this.isNewThrowValueValid(this.getThrowValue() + value)) {
-      this.currentPlayer().throws[this.currentThrow - 1].value = this.getThrowValue() + value;
+    let throwValue = this.getThrowValue();
+    if(throwValue === '' && value === 'Enter') {
+      this.currentPlayer().throws[this.currentThrow - 1].value = 'Miss';
+    } else if(value === '.' && this.isThrowValueValid(throwValue)) {
+      throwValue = `T-${throwValue}`;
+      this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
+    } else if(value === '+' && this.isThrowValueValid(throwValue)) {
+      throwValue = `D-${throwValue}`;
+      this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
+    } else {
+      throwValue += value;
+      if (this.isThrowValueValid(throwValue)) {
+        this.currentPlayer().throws[this.currentThrow - 1].value = throwValue;
+      }
     }
   }
 
@@ -63,16 +75,29 @@ export class Engine {
 
     if (damagedPlayer) {
       if (this.currentPlayer().num !== damagedPlayer.num) {
-        _damagePlayer(damagedPlayer, 1);
+        _damagePlayer(damagedPlayer, _calculateDamage());
       } else {
-        _healPlayer(this.currentPlayer(), 1);
+        _healPlayer(this.currentPlayer(), _calculateDamage());
       }
     }
 
     function _getKilledPlayer() {
       if (!isNaN(that.getThrowValue())) {
         return that.getThrowValue();
+      } else {
+        //parse i.e. T-14 or D-13
+        return that.getThrowValue().split('-')[1];
       }
+    }
+
+    function _calculateDamage() {
+      if (that.getThrowValue().startsWith('T')) {
+        return 3;
+      } else if (that.getThrowValue().startsWith('D')) {
+        return 2;
+      }
+
+      return 1;
     }
 
     function _damagePlayer(player, damage){
@@ -177,7 +202,7 @@ export class Engine {
     return this.players[order - 1];
   }
 
-  isNewThrowValueValid(newValue) {
+  isThrowValueValid(newValue) {
     const VALID_SCORES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '25'];
     return VALID_SCORES.indexOf(newValue) !== -1;
   }

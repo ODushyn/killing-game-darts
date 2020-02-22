@@ -7,7 +7,7 @@
         <th></th>
         <th></th>
         <th></th>
-        <th>Lives</th>
+        <th style="text-align: center">Lives</th>
       </tr>
       <tr v-for="player in this.engine.players" :key="player.name"
           v-bind:class="{
@@ -22,7 +22,7 @@
                  v-bind:style="{width: 40 + 'px', 'text-align': 'center'}"
                  v-bind:class="{'current-throw': !winner() && isCurrentThrow(player, index)}"/>
         </td>
-        <td>
+        <td style="text-align: center">
           <span v-if="!winner() && !player.rip">{{player.lives}}</span>
           <img src="@/assets/winner-cup.jpg"
                v-if="winner() && winner().num === player.num"
@@ -80,7 +80,7 @@
       let engine = self.engine;
 
       window.addEventListener('keydown', function (e) {
-        if (numberPressed(e.keyCode)) {
+        if (numberPressed(e.keyCode) || enterPressed(e.keyCode)) {
           engine.setThrowValue(e.key);
         }
 
@@ -106,7 +106,9 @@
   }
 
   function numberPressed(keyCode) {
-    return (keyCode >= 48 && keyCode <= 57) || (keyCode >= 96 && keyCode <= 105);
+    return (keyCode >= 48 && keyCode <= 57) ||
+      (keyCode >= 96 && keyCode <= 105) ||
+      keyCode === 107 || keyCode === 110;
   }
 </script>
 
