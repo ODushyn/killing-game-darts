@@ -32,6 +32,25 @@ describe('Game', () => {
           rip: false
         }
       ];
+
+      let mock = (function() {
+        let store = {};
+        return {
+          getItem: function(key) {
+            return store[key];
+          },
+          setItem: function(key, value) {
+            store[key] = value.toString();
+          },
+          removeItem: function(key) {
+            delete store[key];
+          }
+        };
+      })();
+
+      Object.defineProperty(window, 'localStorage', {
+        value: mock,
+      });
     });
 
     it('should skip RIP players in the middle', function () {

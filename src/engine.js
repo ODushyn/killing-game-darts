@@ -5,15 +5,25 @@ export class Engine {
   currentPlayerNum = 1;
   currentThrow = 1;
   winner = null;
-  history = [];
 
   constructor(players) {
-    this.players = players;
-    this.saveHistory();
+    if (players.length > 0) {
+      this.players = players.map(p => Object.assign(p, {
+        throws: [{value: ''}, {value: ''}, {value: ''}],
+        recoveries: 1,
+        lives: 3,
+        rip: false
+      }));
+      this.clearHistory();
+      this.addEventToHistory();
+    } else {
+      this.applyHistoryFromStorage();
+      this.revertLastAction();
+    }
   }
 
   processThrow() {
-    this.saveHistory();
+    this.addEventToHistory();
     this.applyCurrentThrow();
     if (!this.isGameOver()) {
       if (this.isNextThrow()) {
@@ -43,7 +53,7 @@ export class Engine {
   }
 
   setThrowValue(value) {
-    if(this.isGameOver()) return;
+    if (this.isGameOver()) return;
     let that = this;
     this.currentPlayer().throws[this.currentThrow - 1].value = _generateThrowValue(value);
 
@@ -76,31 +86,52 @@ export class Engine {
     return this.isCurrentPlayer(player) && this.currentThrow === throwNum + 1;
   }
 
-  clearThrowValue() {
-    this.currentPlayer().throws[this.currentThrow - 1].value = '';
-  }
-
   revertLastAction() {
-    if(this.getThrowValue() !== '') {
+    if (this.getThrowValue() !== '') {
       this.currentPlayer().throws[this.currentThrow - 1].value = '';
     } else {
-      let snapshot = this.history.length > 1 ? this.history.pop() : JSON.parse(JSON.stringify(this.history[0]));
-      this.players = snapshot.players;
-      this.currentPlayerNum = snapshot.currentPlayerNum;
-      this.currentThrow = snapshot.currentThrow;
-      this.winner = snapshot.winner;
+      this.applyLastEventFromHistory();
     }
   }
 
-  saveHistory() {
-    this.history.push(JSON.parse(JSON.stringify(
+  applyLastEventFromHistory() {
+    let history = this.getHistory();
+    let snapshot = history.length > 1 ? history.pop() : history[0];
+    this.players = snapshot.players;
+    this.currentPlayerNum = snapshot.currentPlayerNum;
+    this.currentThrow = snapshot.currentThrow;
+    this.winner = snapshot.winner;
+    this.setHistory(history);
+  }
+
+  applyHistoryFromStorage() {
+    this.applyLastEventFromHistory();
+  }
+
+  getHistory() {
+    return JSON.parse(window.localStorage.getItem('history') || '[]');
+  }
+
+  setHistory(history) {
+    window.localStorage.setItem('history', JSON.stringify(history));
+  }
+
+  clearHistory() {
+    window.localStorage.removeItem('history');
+  }
+
+  addEventToHistory() {
+    let event = JSON.parse(JSON.stringify(
       Object.assign({}, {
         players: this.players,
         currentPlayerNum: this.currentPlayerNum,
         currentThrow: this.currentThrow,
         winner: this.winner
       })
-    )));
+    ));
+    let history = this.getHistory() || [];
+    history.push(event);
+    this.setHistory(history);
   }
 
   applyCurrentThrow() {

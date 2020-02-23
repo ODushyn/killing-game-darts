@@ -14,7 +14,7 @@
             'current-player': (winner() !== undefined) && (winner() !== null) && isCurrentPlayer(player)
           }"
       >
-        <td>{{player.name}}</td>
+        <td style="text-align: left">{{player.name}}</td>
         <td>{{player.num}}</td>
         <td v-for="(_throw, index) in player.throws" :key="index">
           <input disabled v-model="_throw.value"
@@ -45,6 +45,8 @@
     <div v-if="winner() === undefined">
       <b> Good game dead guys! </b>
     </div>
+    <button v-on:click="$emit('restartGame')">Restart</button>
+    <button v-on:click="$emit('startNewGame')">New game</button>
   </div>
 </template>
 
@@ -54,7 +56,12 @@
   export default {
     name: 'Game',
     props: {
-      players: Array
+      players: {
+        type: Array,
+        default: function () {
+          return [];
+        }
+      }
     },
     data() {
       return {
@@ -91,8 +98,8 @@
 
         if (enterPressed(e.keyCode)) {
           engine.processThrow();
-          self.$forceUpdate();
         }
+        self.$forceUpdate();
       });
     }
   }
@@ -114,20 +121,6 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  h3 {
-    margin: 40px 0 0;
-  }
-
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-
   .current-throw {
     background-color: cornflowerblue;
   }

@@ -1,45 +1,50 @@
 <template>
   <div id="app">
-    <HelloWorld :players="players"/>
+    <Players v-if="!gameStarted"
+             v-bind:players="players"
+             v-on:startGame="startGame($event)">
+    </Players>
+    <Game v-if="gameStarted"
+          v-bind:players="players"
+          v-on:restartGame="restartGame($event)"
+          v-on:startNewGame="createNewGame($event)">
+    </Game>
   </div>
 </template>
 
 <script>
-  import HelloWorld from './components/Game.vue'
+  import Players from "./components/Players";
+  import Game from "./components/Game";
 
   export default {
     name: 'App',
     components: {
-      HelloWorld
+      Game,
+      Players
     },
     data() {
       return {
-        players: [
-          {
-            name: 'Felipe',
-            num: '10',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          },
-          {
-            name: 'Oliver',
-            num: '15',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          },
-          {
-            name: 'Sasha',
-            num: '20',
-            throws: [{value: ''}, {value: ''}, {value: ''}],
-            recoveries: 1,
-            lives: 3,
-            rip: false
-          }
-        ]
+        gameStarted: JSON.parse(localStorage.getItem('gameStarted')) === true,
+        players: undefined
+      }
+    },
+    methods: {
+      startGame(players) {
+        this.players = players;
+        this.gameStarted = true;
+        localStorage.setItem('players', JSON.stringify(players));
+        localStorage.setItem('gameStarted', 'true');
+      },
+      restartGame() {
+        console.log('restart game');
+        this.players = JSON.parse(localStorage.getItem('players'));
+        this.gameStarted = false;
+        localStorage.setItem('gameStarted', 'false');
+      },
+      createNewGame() {
+        this.players = undefined;
+        this.gameStarted = false;
+        localStorage.setItem('gameStarted', 'false');
       }
     }
   }
