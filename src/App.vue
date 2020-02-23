@@ -1,5 +1,7 @@
 <template>
   <div id="app">
+    <h2>Killing Game</h2>
+
     <Players v-if="!gameStarted"
              v-bind:players="players"
              v-on:startGame="startGame($event)">
@@ -57,7 +59,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
     margin-left: 60px;
+    zoom: 250%;
   }
 </style>

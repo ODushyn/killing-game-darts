@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <table>
       <tr>
         <th>Player</th>
@@ -45,8 +45,16 @@
     <div v-if="winner() === undefined">
       <b> Good game dead guys! </b>
     </div>
-    <button v-on:click="$emit('restartGame')">Restart</button>
-    <button v-on:click="$emit('startNewGame')">New game</button>
+    <div class="actions">
+      <button v-on:click="$emit('restartGame')"
+              class="restart-button">
+        Restart
+      </button>
+      <button v-on:click="$emit('startNewGame')"
+              class="new-game-button">
+        New game
+      </button>
+    </div>
   </div>
 </template>
 
@@ -121,11 +129,32 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .current-throw {
     background-color: cornflowerblue;
   }
 
   .current-player {
     background-color: aquamarine;
+  }
+
+  .actions {
+    display: flex;
+    margin-top: 3%;
+  }
+  .restart-button {
+    margin-right: 8%;
+    height: 25px;
+    width: 100px;
+  }
+
+  .new-game-button {
+    height: 25px;
+    width: 100px;
   }
 </style>
