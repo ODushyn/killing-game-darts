@@ -1,17 +1,21 @@
 <template>
   <div class="container">
-    <div v-for="(player, index) in this.players" :key="index">
+    <div class="player-action-buttons">
+      <button v-on:click="addPlayer">
+        Add
+      </button>
+      <button v-if="players.length > 1" v-on:click="rotate">
+        Rotate
+      </button>
+    </div>
+
+    <div v-for="(player, index) in this.players" :key="index" class="player-row">
       <button v-on:click="deletePlayer(index)">
-        Delete player
+        Delete
       </button>
       Name: <input v-model="player.name"/>
       Num: <input v-model="player.num" v-bind:style="{width: 40 + 'px', 'text-align': 'center'}"/>
     </div>
-
-    <button v-on:click="addPlayer"
-            class="add-player-button">
-      Add player
-    </button>
 
     <button v-on:click="$emit('startGame', players)"
             class="start-button">
@@ -37,6 +41,9 @@
       },
       deletePlayer(index) {
         this.players.splice(index, 1);
+      },
+      rotate() {
+        this.players.reverse();
       }
     }
   }
@@ -55,7 +62,20 @@
     color: green;
   }
 
-  .add-player-button {
+  .player-action-buttons {
+    display: flex;
+    width: 110%;
+    margin-bottom: 2%;
+  }
+
+  .player-action-buttons button {
+    margin-right: 1%;
+    width: 7%;
+  }
+
+  .player-row {
     margin-top: 1%;
   }
+
+
 </style>
