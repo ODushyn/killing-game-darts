@@ -1,3 +1,5 @@
+import {SOUNDS} from "./sounds";
+
 const THROWS_NUM = 3;
 
 export class Engine {
@@ -5,6 +7,7 @@ export class Engine {
   currentPlayerNum = 1;
   currentThrow = 1;
   winner = null;
+  totalKills = 0;
 
   constructor(players) {
     if (players.length > 0) {
@@ -101,6 +104,7 @@ export class Engine {
     this.currentPlayerNum = snapshot.currentPlayerNum;
     this.currentThrow = snapshot.currentThrow;
     this.winner = snapshot.winner;
+    this.totalKills = snapshot.totalKills;
     this.setHistory(history);
   }
 
@@ -126,7 +130,8 @@ export class Engine {
         players: this.players,
         currentPlayerNum: this.currentPlayerNum,
         currentThrow: this.currentThrow,
-        winner: this.winner
+        winner: this.winner,
+        totalKills: this.totalKills
       })
     ));
     let history = this.getHistory() || [];
@@ -176,6 +181,8 @@ export class Engine {
               player.recoveries--;
             }
           }
+          _applySound(damage);
+          that.totalKills += (player.lives - newLives);
           player.lives = newLives;
         }
       }
@@ -184,6 +191,26 @@ export class Engine {
     function _healPlayer(player, points) {
       if (!that.isPlayerRIP(player)) {
         player.lives = player.lives + points > 3 ? 3 : player.lives + points;
+      }
+    }
+
+    function _applySound(damage) {
+      if(that.totalKills === 0) {
+        SOUNDS.first_blood.play();
+      }
+      if(damage === 2) {
+        if(that.totalKills === 0) {
+          setTimeout(() => SOUNDS.double_kill.play(), 1500);
+        } else {
+          SOUNDS.double_kill.play();
+        }
+      }
+      if(damage === 3) {
+        if(that.totalKills === 0) {
+          setTimeout(() => SOUNDS.triple_kill.play(), 1500);
+        } else {
+          SOUNDS.triple_kill.play();
+        }
       }
     }
   }
