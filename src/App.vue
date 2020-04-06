@@ -60,6 +60,6 @@
     text-align: center;
     color: #2c3e50;
     margin-left: 60px;
-    zoom: 250%;
+    zoom: 150%;
   }
 </style>
