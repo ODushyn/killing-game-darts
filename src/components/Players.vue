@@ -57,24 +57,15 @@
 </template>
 
 <script>
+  import playersAPI from '../availablePlayers';
+
   export default {
     name: 'Players',
     props: {
       players: {
         type: Array,
         default: function () {
-          return [{name: 'Sashasashasasha', num: ''}, {name: 'Felipe', num: ''}, {
-            name: 'Oliver',
-            num: ''
-          }, {name: 'Pilue', num: ''},
-            {name: 'Sashasashasasha1', num: ''}, {name: 'Felipe1', num: ''}, {
-              name: 'Oliver1',
-              num: ''
-            }, {name: 'Pilue1', num: ''},
-            {name: 'Sashasashasasha1', num: ''}, {name: 'Felipe1', num: ''}, {
-              name: 'Oliver1',
-              num: ''
-            }, {name: 'Pilue1', num: ''}];
+          return playersAPI.getAll();
         }
       }
     },
@@ -93,9 +84,16 @@
         this.players.reverse();
       },
       addAvailablePlayer() {
-        if (this.newAvailablePlayer) {
-          this.players.push({name: this.newAvailablePlayer});
+        if (!_playerAlreadyExist(this.players, this.newAvailablePlayer)) {
+          this.players.push({name: this.newAvailablePlayer, num: ''});
+          playersAPI.save({name: this.newAvailablePlayer, num: ''});
           this.newAvailablePlayer = '';
+          this._sortPlayers(this.players);
+        }
+
+        function _playerAlreadyExist(players, name) {
+          if(!name) return false;
+          return !!players.find(p => p.name === name);
         }
       },
       addToSetup(player) {
@@ -107,6 +105,7 @@
           this.selectedPlayer = {};
         }
         this.selectedPlayers = this.selectedPlayers.filter(p => p.name !== player.name);
+        this._unhighlight(+player.num);
 
         this.players.push(player);
         this._sortPlayers(this.players);
@@ -116,12 +115,37 @@
       },
       removePlayer(event, player) {
         this.players = this.players.filter(p => p.name !== player.name);
+        playersAPI.remove(player);
         event.stopPropagation();
         event.preventDefault();
       },
       _sortPlayers(players) {
         players.sort((a, b) => (a.name > b.name) ? 1 : -1)
+      },
+      _highlight(bed) {
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'yellow';
+      },
+      _unhighlight(bed) {
+        const BLACK_RED = [2, 3, 7, 8, 14, 12, 20, 18, 13, 10];
+        const WHITE_GREEN = [1, 4, 6, 15, 17, 19, 16, 11, 9, 5];
+        if (BLACK_RED.indexOf(bed) !== -1) {
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'black';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'black';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'red';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'red';
+        } else if (WHITE_GREEN.indexOf(bed) !== -1) {
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'ivory';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'ivory';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'green';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'green';
+        }
       }
+    },
+    created() {
+      this._sortPlayers(this.players);
     },
     mounted() {
       // eslint-disable-next-line no-undef
@@ -132,7 +156,7 @@
       document.querySelector('#dartboard').addEventListener('throw', function (d) {
         let bed = d.detail.bed;
         if (['B25', 'DB50'].indexOf(bed) !== -1) return;
-        if(!that.selectedPlayers.length || !that.selectedPlayer.name) return;
+        if (!that.selectedPlayers.length || !that.selectedPlayer.name) return;
 
         bed = bed.slice(1);
 
@@ -144,35 +168,12 @@
           })
         }
         if (that.selectedPlayer.num !== bed) {
-          _unhighlight(+that.selectedPlayer.num);
-          _highlight(+bed);
+          that._unhighlight(+that.selectedPlayer.num);
+          that._highlight(+bed);
         } else {
-          _highlight(+bed);
+          that._highlight(+bed);
         }
         that.selectedPlayer.num = bed;
-
-        function _highlight(bed) {
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'yellow';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'yellow';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'yellow';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'yellow';
-        }
-
-        function _unhighlight(bed) {
-          const BLACK_RED = [2, 3, 7, 8, 14, 12, 20, 18, 13, 10];
-          const WHITE_GREEN = [1, 4, 6, 15, 17, 19, 16, 11, 9, 5];
-          if (BLACK_RED.indexOf(bed) !== -1) {
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'black';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'black';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'red';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'red';
-          } else if (WHITE_GREEN.indexOf(bed) !== -1) {
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'ivory';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'ivory';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'green';
-            document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'green';
-          }
-        }
       });
     }
   }
@@ -264,6 +265,9 @@
     background-color: cornflowerblue;
   }
 
+  .selected_players .player-row input[type="radio"]:checked + label {
+    background-color: cornflowerblue;
+  }
 
   /* ----------------*/
 
@@ -293,10 +297,5 @@
     background-color: #bbb;
     display: inline-block;
     border-radius: 2px;
-  }
-
-
-  .player-row input[type="radio"]:checked + label {
-    background-color: cornflowerblue;
   }
 </style>
