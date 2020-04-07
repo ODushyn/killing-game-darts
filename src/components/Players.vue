@@ -1,14 +1,6 @@
 <template>
   <div class="container">
     <div class="settings">
-      <!--      <div class="player-action-buttons">-->
-      <!--        <button v-on:click="addPlayer">-->
-      <!--          Add-->
-      <!--        </button>-->
-      <!--        <button v-if="players.length > 1" v-on:click="rotate">-->
-      <!--          Rotate-->
-      <!--        </button>-->
-      <!--      </div>-->
       <div class="selected_players">
         <div v-if="selectedPlayers.length > 0">Select a player and assign the number from the dartboard</div>
         <div v-for="(player, index) in this.selectedPlayers" :key="index" class="player-row">
