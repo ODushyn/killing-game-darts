@@ -4,18 +4,15 @@ export default {
     if (!localStorage.getItem('availablePlayers')) {
       localStorage.setItem('availablePlayers', JSON.stringify(
         [
-          {name: 'Sashasashasasha', num: ''},
+          {name: 'Sasha', num: ''},
           {name: 'Felipe', num: ''},
           {name: 'Oliver', num: ''},
           {name: 'Pilue', num: ''},
-          {name: 'Sashasashasasha1', num: ''},
-          {name: 'Felipe1', num: ''},
-          {name: 'Oliver1', num: ''},
-          {name: 'Pilue1', num: ''},
-          {name: 'Sashasashasasha1', num: ''},
-          {name: 'Felipe1', num: ''},
-          {name: 'Oliver1', num: ''},
-          {name: 'Pilue1', num: ''}
+          {name: 'Artem', num: ''},
+          {name: 'Jan', num: ''},
+          {name: 'Fabricio', num: ''},
+          {name: 'Paulo', num: ''},
+          {name: 'Carlos', num: ''},
         ])
       )
     }

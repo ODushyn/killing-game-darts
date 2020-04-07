@@ -27,6 +27,14 @@
                  v-bind:style="{width: 40 + 'px', 'text-align': 'center'}" disabled/>
         </div>
         <div v-if="selectedPlayers.length === 0">Select players to start the game</div>
+        <div v-if="selectedPlayers.length > 1" class="player-action-buttons">
+          <button v-on:click="randomize">
+            Randomize
+          </button>
+          <button v-on:click="rotate">
+            Rotate
+          </button>
+        </div>
       </div>
 
       <div class="available_players">
@@ -77,12 +85,6 @@
       }
     },
     methods: {
-      addPlayer() {
-        this.players.push({name: '', num: ''});
-      },
-      rotate() {
-        this.players.reverse();
-      },
       addAvailablePlayer() {
         if (!_playerAlreadyExist(this.players, this.newAvailablePlayer)) {
           this.players.push({name: this.newAvailablePlayer, num: ''});
@@ -92,7 +94,7 @@
         }
 
         function _playerAlreadyExist(players, name) {
-          if(!name) return false;
+          if (!name) return false;
           return !!players.find(p => p.name === name);
         }
       },
@@ -118,6 +120,14 @@
         playersAPI.remove(player);
         event.stopPropagation();
         event.preventDefault();
+      },
+      rotate() {
+        this.selectedPlayers.reverse();
+      },
+      randomize() {
+        this.selectedPlayers = this.selectedPlayers.map((a) => ({sort: Math.random(), value: a}))
+          .sort((a, b) => a.sort - b.sort)
+          .map((a) => a.value)
       },
       _sortPlayers(players) {
         players.sort((a, b) => (a.name > b.name) ? 1 : -1)
@@ -250,7 +260,7 @@
   .selected_players {
     display: flex;
     flex-direction: column;
-    margin-bottom: 15%;
+    margin-bottom: 10%;
   }
 
   .selected_players .player-row {
@@ -279,8 +289,7 @@
 
   .player-action-buttons {
     display: flex;
-    width: 110%;
-    margin-bottom: 2%;
+    margin-top: 4%;
   }
 
   .player-action-buttons button {
