@@ -3,12 +3,11 @@
     <h2>Killing Game</h2>
 
     <Players v-if="!gameStarted"
-             v-bind:players="players"
+             v-bind:selected-players="selectedPlayers"
              v-on:startGame="startGame($event)">
     </Players>
     <Game v-if="gameStarted"
-          v-bind:players="players"
-          v-on:restartGame="restartGame($event)"
+          v-bind:players="selectedPlayers"
           v-on:startNewGame="createNewGame($event)">
     </Game>
   </div>
@@ -27,24 +26,18 @@
     data() {
       return {
         gameStarted: JSON.parse(localStorage.getItem('gameStarted')) === true,
-        players: undefined
+        selectedPlayers: undefined
       }
     },
     methods: {
-      startGame(players) {
-        this.players = players;
+      startGame(selectedPlayers) {
+        this.selectedPlayers = selectedPlayers;
         this.gameStarted = true;
-        localStorage.setItem('players', JSON.stringify(players));
         localStorage.setItem('gameStarted', 'true');
       },
-      restartGame() {
-        console.log('restart game');
-        this.players = JSON.parse(localStorage.getItem('players'));
-        this.gameStarted = false;
-        localStorage.setItem('gameStarted', 'false');
-      },
-      createNewGame() {
-        this.players = undefined;
+      createNewGame(selectedPlayers) {
+        this.selectedPlayers = selectedPlayers;
+        this.selectedPlayers.forEach(p => p.num = '');
         this.gameStarted = false;
         localStorage.setItem('gameStarted', 'false');
       }

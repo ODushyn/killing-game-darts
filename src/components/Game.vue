@@ -29,7 +29,7 @@
                alt="RIP"
                style="width:30px; height:auto;">
           <img src="@/assets/rip.svg"
-               v-if="player.rip"
+               v-if="rip(player)"
                alt="RIP"
                style="width:30px; height:auto;">
           <img src="@/assets/heart.png"
@@ -46,15 +46,12 @@
       <b> Good game dead guys! </b>
     </div>
     <div class="actions">
-      <button v-on:click="$emit('restartGame')"
-              class="restart-button">
-        Restart
-      </button>
-      <button v-on:click="$emit('startNewGame')"
+      <button v-on:click="$emit('startNewGame', engine.players)"
               class="new-game-button">
         New game
       </button>
     </div>
+    <div id="dartboard_game" style="width: 50%; min-width: 300px; min-height: 300px; margin-left: 3%"></div>
   </div>
 </template>
 
@@ -88,6 +85,37 @@
       },
       winner() {
         return this.engine.winner
+      },
+      rip(player) {
+        const rip = player.rip;
+        if(rip) {
+          this._unhighlight(player.num);
+        }
+        return rip;
+      },
+      _highlight(bed) {
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'yellow';
+        document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'yellow';
+      },
+      _unhighlight(bed) {
+        if(!document.querySelector('#dartboard_game')) return;
+        bed = +bed;
+        const BLACK_RED = [2, 3, 7, 8, 14, 12, 20, 18, 13, 10];
+        const WHITE_GREEN = [1, 4, 6, 15, 17, 19, 16, 11, 9, 5];
+        if (BLACK_RED.indexOf(bed) !== -1) {
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'black';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'black';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'red';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'red';
+        } else if (WHITE_GREEN.indexOf(bed) !== -1) {
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'ivory';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'ivory';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'green';
+          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'green';
+        }
+        return true;
       }
     },
     created() {
@@ -109,6 +137,38 @@
         }
         self.$forceUpdate();
       });
+    },
+    mounted() {
+      let self = this;
+      let engine = self.engine;
+      // eslint-disable-next-line no-undef
+      const dartboard = new Dartboard('#dartboard_game');
+      dartboard.render();
+      _highlightPlayers();
+
+      document.querySelector('#dartboard_game').addEventListener('throw', function (d) {
+          if (d.detail.ring === 'border') {
+            // miss
+            engine.setThrowValue('');
+          } else {
+            if (d.detail.bed === 'DB50') {
+              engine.setThrowValue('25');
+              engine.setThrowValue('+');
+            } else if (d.detail.bed === 'DB50') {
+              engine.setThrowValue('25');
+            } else {
+              engine.setThrowValue(d.detail.bed.slice(1));
+            }
+          }
+          engine.processThrow();
+        }
+      );
+
+      function _highlightPlayers() {
+        self.engine.players
+          .filter(p => !p.rip)
+          .forEach(p => self._highlight(p.num));
+      }
     }
   }
 
@@ -131,7 +191,7 @@
 <style scoped>
   .container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
   }
 
@@ -147,6 +207,7 @@
     display: flex;
     margin-top: 3%;
   }
+
   .restart-button {
     margin-right: 8%;
     height: 25px;

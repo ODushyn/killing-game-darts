@@ -67,11 +67,16 @@
         default: function () {
           return playersAPI.getAll();
         }
+      },
+      selectedPlayers: {
+        type: Array,
+        default: function () {
+          return [];
+        }
       }
     },
     data() {
       return {
-        selectedPlayers: [],
         selectedPlayer: {},
         newAvailablePlayer: ''
       }
@@ -130,23 +135,29 @@
         document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'yellow';
         document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'yellow';
       },
-      _unhighlight(bed) {
-        const BLACK_RED = [2, 3, 7, 8, 14, 12, 20, 18, 13, 10];
-        const WHITE_GREEN = [1, 4, 6, 15, 17, 19, 16, 11, 9, 5];
-        if (BLACK_RED.indexOf(bed) !== -1) {
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'black';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'black';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'red';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'red';
-        } else if (WHITE_GREEN.indexOf(bed) !== -1) {
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'ivory';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'ivory';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'green';
-          document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'green';
+        _unhighlight(bed) {
+          const BLACK_RED = [2, 3, 7, 8, 14, 12, 20, 18, 13, 10];
+          const WHITE_GREEN = [1, 4, 6, 15, 17, 19, 16, 11, 9, 5];
+          if (BLACK_RED.indexOf(bed) !== -1) {
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'black';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'black';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'red';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'red';
+          } else if (WHITE_GREEN.indexOf(bed) !== -1) {
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-outerSingle--${bed}`).style.fill = 'ivory';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-innerSingle--${bed}`).style.fill = 'ivory';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-triple--${bed}`).style.fill = 'green';
+            document.querySelector(`.c-Dartboard-bed.c-Dartboard-double--${bed}`).style.fill = 'green';
+          }
         }
-      }
     },
     created() {
+      console.log(this.selectedPlayers);
+      console.log(this.players);
+      this.players = this.players
+        .filter(p =>
+          (this.selectedPlayers || []).map(pl => pl.name).indexOf(p.name) === -1
+        );
       this._sortPlayers(this.players);
     },
     mounted() {
@@ -286,7 +297,7 @@
 
   .player-action-buttons button {
     margin-right: 1%;
-    width: 20%;
+    width: 25%;
   }
 
   .player-label {
